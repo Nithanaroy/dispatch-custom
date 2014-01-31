@@ -28,20 +28,26 @@ program
 
 program
   .command('list')
-  .description('list all available network interfaces')
+  .description('list all the network interfaces')
   .action ->
     interfaces = os.networkInterfaces()
 
+    v_resultJson = []
+    v_jsonstring = ""
     for name, addrs of interfaces
-      logger.log "<b>#{name}"
+      #v_resultJson.push {"name": name}
+      #logger.log "<b>#{name}"
 
       for { address, family, internal } in addrs
+        v_resultJson.push ({"name": name, address})
         opts = []
         opts.push family if family
         opts.push 'internal' if internal
-        logger.log "    <a>#{address}</>" + if opts.length > 0 then " (#{opts.join ', '})" else ''
+        #logger.log "    <a>#{address}</>" + if opts.length > 0 then " (#{opts.join ', '})" else ''
 
       logger.log ''
+    v_jsonstring = JSON.stringify v_resultJson
+    logger.log "#{v_jsonstring}"
 
 program
   .command('start')
@@ -76,28 +82,51 @@ program
         .on 'request', ({ clientRequest, serverRequest, localAddress }) ->
           id = (crypto.randomBytes 3).toString 'hex'
 
-          logger.emit 'request', "[#{id}] <a>#{clientRequest.url}</>"
-          logger.emit 'dispatch', "[#{id}] <a>#{localAddress}</>"
+          #logger.emit 'request', "[#{id}] <a>#{clientRequest.url}</>"
+          #logger.emit 'dispatch', "[#{id}] <a>#{localAddress}</>"
+          #v_localAddress = "#{localAddress}".split "\n"
+          #logger.emit "", "#{v_localAddress[0]}"
 
           serverRequest
-            .on 'response', (serverResponse) ->
-              logger.emit 'response', "[#{id}] <magenta><b>#{serverResponse.statusCode}</></>"
+            #.on 'response', (serverResponse) ->
+              #logger.emit 'response', "[#{id}] <magenta><b>#{serverResponse.statusCode}</></>"
 
             .on 'error', (err) ->
-              logger.emit 'error', "[#{id}] clientRequest\n#{escape err.stack}"
+              #logger.emit 'error', "[#{id}] clientRequest\n#{escape err.stack}"
+              #logger.emit '1', "#{err.stack[0]}"
+              v_err1 = "#{err.stack}".split "\n"
+              logger.emit "", "#{v_err1[0]}"
+              logger.emit '',"#{localAddress}"
+              ##err2 = "#{escape err.stack}".split "\n"
+              ##logger.emit err2[0]
 
-            .on 'end', ->
-              logger.emit 'end', "[#{id}] serverRequest"
+            #.on 'end', ->
+              #logger.emit 'end', "[#{id}] serverRequest"
 
           clientRequest
             .on 'error', (err) ->
-              logger.emit 'error', "[#{id}] clientRequest\n#{escape err.stack}"
+              #logger.emit 'error', "[#{id}] clientRequest\n#{escape err.stack}"
+              v_err1 = "#{err.stack}".split "\n"
+              logger.emit "", "#{v_err1[0]}"
+              logger.emit '',"#{localAddress}"
+              #v_err2 = err.stack.split "\n"
+              #logger.emit "#{v_err2}"
+              ##err3 = "#{escape err.stack}".split "\n"
+              ##logger.emit err3[0]
 
-            .on 'end', ->
-              logger.emit 'end', "[#{id}] clientRequest"
+            #.on 'end', ->
+              #logger.emit 'end', "[#{id}] clientRequest"
 
         .on 'error', (err) ->
-          logger.emit 'error', "server\n#{escape err.stack}"
+          #logger.emit 'error', "server\n#{escape err.stack}"
+          #logger.emit '3', "#{err.stack[0]}"
+          v_err1 = "#{err.stack}".split "\n"
+          logger.emit "", "#{v_err1[0]}"
+          logger.emit '',"#{localAddress}"
+          #v_err3 = err.stack.split "\n"
+          #logger.emit "#{v_err3}"
+          #err4 = "#{escape err.stack}".split "\n"
+          #logger.emit err4[0]
 
     else
       port or= 1080
@@ -134,9 +163,11 @@ program
         .on 'socksError', (err) ->
           logger.emit 'error', "socks\n#{escape err.message}"
 
-    logger.log """
+    ###logger.log """
       <b><magenta>#{type}</></> server started on <a>#{host}</><b>:#{port}</>
       Dispatching to addresses #{("<a>#{address}</><b>@#{priority}</>" for { address, priority } in addresses).join ', '}
     """
+###
+
 
 program.parse process.argv
